@@ -51,7 +51,28 @@ return $coupon_code;
 }
 
 add_action('admin_menu', 'coupon_generator_setup_menu');
- 
+
+// Generate coupon from admin order overview
+
+add_filter( 'woocommerce_admin_order_actions', 'add_generate_coupon_order_action', PHP_INT_MAX, 2 );
+
+function add_generate_coupon_order_action( $actions, $the_order ) {
+    
+        $actions[] = array(
+            'url'       => admin_url( 'admin.php?page=coupon-generator&cpgn=y&orderid=' . $the_order->id ),
+            'name'      => __( 'Genereer kortingscode', 'woocommerce' ),
+            'action'    => "view coupon", // setting "view" for proper button CSS
+      );
+   
+    return $actions;
+}
+
+add_action( 'admin_head', 'add_generate_coupon_action_css' );
+function add_generate_coupon_action_css() {
+    echo '<style>.view.coupon::after { content: "\f524" !important; }</style>';
+}
+
+// Add coupon generator menu button 
 function coupon_generator_setup_menu(){
         add_menu_page( 'Generate coupon', 'Coupon generator', 'manage_options', 'coupon-generator', 'generate_init' );
 }
@@ -59,27 +80,28 @@ function coupon_generator_setup_menu(){
 // submit to create coupon
 function generate_init(){
         
+		if (isset($_GET['cpgn'])) {
+			 $order = new WC_Order($_GET['orderid']);
+$clientemail = $order->billing_email;
+generate_coupons($clientemail);
+echo '<h1>Coupon generated!</h1>';
+?><a class="btn" href="<?php echo admin_url( 'edit.php?post_type=shop_order');?>">Return to orders</a><?php
+		}else{
 		
 		 if (isset($_POST['generetecouponbtn'])) {
 			 echo '<h1>Coupon generated!</h1>';
-			 
-			  if (!empty($_POST['orderid'])) {
-				  $order = new WC_Order($_POST['orderid']);
-$clientemail = $order->billing_email;
-}
-			  else{
-  
-				  $clientemail =''; }
-				  echo "<h2>Coupon generation</h2>";
-   generate_coupons($clientemail);
+			   
+				  $clientemail =''; 
+				  generate_coupons($clientemail);
 			 
   }
   
   ?>
+  <h2>Coupon generation</h2>
 <form action="" method="post">
-<input type="text" name="orderid" placeholder="Input order ID or leave empty"/><br />
 <input type="submit" value="generate coupon" name="generetecouponbtn"/>
 </form>
 	
 <?php
+		}
 		}
