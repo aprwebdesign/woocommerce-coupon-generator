@@ -2,4 +2,5 @@
 
 Small plugin to generate a coupon code for woocommerce programmatically.
 
+### Work in progress
 
