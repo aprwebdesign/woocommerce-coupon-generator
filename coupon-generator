@@ -12,7 +12,7 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 /* generate coupons */
 
-function generate_coupons () {
+function generate_coupons ($clientemail) {
 $coupon_code = substr( "abcdefghijklmnopqrstuvwxyz123456789", mt_rand(0, 50) , 1) .substr( md5( time() ), 1); 
 $coupon_code2 = substr( "abcdefghijklmnopqrstuvwxyz1234567890", mt_rand(0, 80) , 1) .substr( md5( time() ), 1);
 $coupon_code = "bkleder-".substr( $coupon_code, 0,3)."-".substr( $coupon_code2, 0,4); // create the coupon
@@ -44,7 +44,7 @@ update_post_meta( $new_coupon_id, 'exclude_sale_items', 'no' );
 update_post_meta( $new_coupon_id, 'product_categories', '' );       
 update_post_meta( $new_coupon_id, 'exclude_product_categories', '' );       
 update_post_meta( $new_coupon_id, 'minimum_amount', '100' );       
-update_post_meta( $new_coupon_id, 'customer_email', '' );       
+update_post_meta( $new_coupon_id, 'customer_email', $clientemail );       
 
 return $coupon_code;
 
@@ -58,13 +58,26 @@ function coupon_generator_setup_menu(){
  
 // submit to create coupon
 function generate_init(){
-        echo "<h2>Coupon generation</h2>";
+        
 		
 		 if (isset($_POST['generetecouponbtn'])) {
 			 echo '<h1>Coupon generated!</h1>';
-   generate_coupons();
-  }?>
+			 
+			  if (!empty($_POST['orderid'])) {
+				  $order = new WC_Order($_POST['orderid']);
+$clientemail = $order->billing_email;
+}
+			  else{
+  
+				  $clientemail =''; }
+				  echo "<h2>Coupon generation</h2>";
+   generate_coupons($clientemail);
+			 
+  }
+  
+  ?>
 <form action="" method="post">
+<input type="text" name="orderid" placeholder="Input order ID or leave empty"/><br />
 <input type="submit" value="generate coupon" name="generetecouponbtn"/>
 </form>
 	
